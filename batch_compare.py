@@ -29,6 +29,7 @@ def save_grid(grid_id, grid, start, goal, obstacles):
         }, f, indent=2)
 
 def main():
+    import random
     with open(RESULTS_CSV, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["GridID", "Q_Solved", "Q_Steps", "Q_Reward", "A_Solved", "A_Steps", "Outcome_Match"])
@@ -37,8 +38,13 @@ def main():
             env = GridEnvironment()
             env.generate_random(GRID_SIZE, OBSTACLE_PROB)
             grid = env.grid.tolist()
-            start = env.start
-            goal = env.goal
+            free_cells = [(x, y) for x in range(GRID_SIZE) for y in range(GRID_SIZE) if grid[x][y] == 0]
+            if len(free_cells) < 2:
+                print(f"Skipping Grid {i}: Not enough free cells")
+                continue
+            start, goal = random.sample(free_cells, 2)
+            env.start = start
+            env.goal = goal
             obstacles = [(x, y) for x in range(GRID_SIZE) for y in range(GRID_SIZE) if grid[x][y] == 1]
 
             q_path, q_reward = run_qlearning(grid, start, goal, obstacles)

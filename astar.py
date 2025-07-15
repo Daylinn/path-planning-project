@@ -19,6 +19,9 @@ def heuristic(a, b, method="manhattan"):
     raise ValueError("Unsupported heuristic method.")
 
 def astar(start, goal, grid):
+  if start == goal:
+    return [start]
+
   open_list = []
   closed_set = set()
   start_node = Node(start, 0, heuristic(start, goal, method="manhattan"))
@@ -27,36 +30,36 @@ def astar(start, goal, grid):
   came_from = {}
   g_score = {start: 0}
   
+  node_map = {start: start_node}
+
   while open_list:
     current_node = heapq.heappop(open_list)
 
     if current_node.position == goal:
-      path = []
-      while current_node.position in came_from:
-        path.append(current_node.position)
-        current_node = came_from[current_node.position]
-      return path[::-1]  # Return reversed path
+      path = [goal]
+      while path[-1] in came_from:
+        path.append(came_from[path[-1]])
+      return path[::-1]
 
     closed_set.add(current_node.position)
 
-    for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # 4 possible directions
+    for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
       neighbor = (current_node.position[0] + dx, current_node.position[1] + dy)
 
       if (0 <= neighbor[0] < len(grid) and
-        0 <= neighbor[1] < len(grid[0]) and
-        grid[neighbor[0]][neighbor[1]] == 0 and
-        neighbor not in closed_set):
+          0 <= neighbor[1] < len(grid[0]) and
+          grid[neighbor[0]][neighbor[1]] == 0 and
+          neighbor not in closed_set):
 
         tentative_g_score = g_score[current_node.position] + 1
 
         if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
-          came_from[neighbor] = current_node
           g_score[neighbor] = tentative_g_score
+          came_from[neighbor] = current_node.position
           h = heuristic(neighbor, goal, method="manhattan")
           neighbor_node = Node(neighbor, tentative_g_score, h)
+          heapq.heappush(open_list, neighbor_node)
+          node_map[neighbor] = neighbor_node
 
-          if neighbor_node not in open_list:
-            heapq.heappush(open_list, neighbor_node)
-
-  print("No path found.")
-  return []  # Return empty if no path found
+  print("No path found from", start, "to", goal)
+  return []

@@ -87,10 +87,14 @@ class GridEnvironment:
     def generate_random(self, size, obstacle_prob):
         self.size = size
         self.grid = np.zeros((size, size), dtype=int)
-        self.start = (0, 0)
-        self.goal = (size - 1, size - 1)
-        self.grid[self.start] = 2
-        self.grid[self.goal] = 3
+        if not hasattr(self, 'start') or self.start is None:
+            self.start = (0, 0)
+        if not hasattr(self, 'goal') or self.goal is None:
+            self.goal = (size - 1, size - 1)
+        if 0 <= self.start[0] < size and 0 <= self.start[1] < size:
+            self.grid[self.start] = 2
+        if 0 <= self.goal[0] < size and 0 <= self.goal[1] < size:
+            self.grid[self.goal] = 3
         self.agent_pos = list(self.start)
         for i in range(size):
             for j in range(size):
@@ -101,3 +105,42 @@ class GridEnvironment:
         with open(filepath, 'w') as f:
             for row in self.grid:
                 f.write(' '.join(str(cell) for cell in row) + '\n')
+
+    def render_path(self, path):
+        import matplotlib.pyplot as plt
+        import matplotlib.patches as patches
+        import time
+        fig, ax = plt.subplots()
+        ax.set_xlim(0, self.size)
+        ax.set_ylim(0, self.size)
+        ax.set_xticks(np.arange(0, self.size, 1))
+        ax.set_yticks(np.arange(0, self.size, 1))
+        ax.grid(True)
+        ax.set_aspect('equal')
+
+        # Draw grid elements
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.grid[i, j] == 1:
+                    rect = patches.Rectangle((j, self.size - 1 - i), 1, 1, linewidth=1, edgecolor='black', facecolor='black')
+                    ax.add_patch(rect)
+                elif (i, j) == self.start:
+                    rect = patches.Rectangle((j, self.size - 1 - i), 1, 1, linewidth=1, edgecolor='green', facecolor='green')
+                    ax.add_patch(rect)
+                elif (i, j) == self.goal:
+                    rect = patches.Rectangle((j, self.size - 1 - i), 1, 1, linewidth=1, edgecolor='red', facecolor='red')
+                    ax.add_patch(rect)
+
+        agent_patch = patches.Circle((self.start[1] + 0.5, self.size - 1 - self.start[0] + 0.5), 0.3, color='blue')
+        ax.add_patch(agent_patch)
+        plt.ion()
+        plt.show()
+
+        for (x, y) in path:
+            agent_patch.center = (y + 0.5, self.size - 1 - x + 0.5)
+            fig.canvas.draw()
+            fig.canvas.flush_events()
+            time.sleep(0.2)
+
+        plt.ioff()
+        plt.show()
