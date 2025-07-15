@@ -1,7 +1,5 @@
 import csv
 import json
-import os
-import time
 from q_learning import QLearning
 from astar import astar
 from grid_environment import GridEnvironment

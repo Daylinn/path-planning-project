@@ -71,3 +71,33 @@ class GridEnvironment:
                     row += "G "
             print(row)
         print()
+
+    def print_grid(self):
+        for row in self.grid:
+            print(' '.join(str(cell) for cell in row))
+    def load_from_file(self, filepath):
+        with open(filepath, 'r') as f:
+            lines = f.readlines()
+        self.grid = np.array([[int(cell) for cell in line.strip().split()] for line in lines])
+        self.size = self.grid.shape[0]
+        self.start = tuple(map(int, np.argwhere(self.grid == 2)[0]))
+        self.goal = tuple(map(int, np.argwhere(self.grid == 3)[0]))
+        self.agent_pos = list(self.start)
+
+    def generate_random(self, size, obstacle_prob):
+        self.size = size
+        self.grid = np.zeros((size, size), dtype=int)
+        self.start = (0, 0)
+        self.goal = (size - 1, size - 1)
+        self.grid[self.start] = 2
+        self.grid[self.goal] = 3
+        self.agent_pos = list(self.start)
+        for i in range(size):
+            for j in range(size):
+                if (i, j) not in [self.start, self.goal] and np.random.rand() < obstacle_prob:
+                    self.grid[i, j] = 1
+
+    def export_to_file(self, filepath):
+        with open(filepath, 'w') as f:
+            for row in self.grid:
+                f.write(' '.join(str(cell) for cell in row) + '\n')

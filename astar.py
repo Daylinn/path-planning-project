@@ -10,13 +10,18 @@ class Node:
   def __lt__(self, other):
     return self.f < other.f
 
-def heuristic(a, b):
-  return abs(a[0] - b[0]) + abs(a[1] - b[1])  # Manhattan distance
+def heuristic(a, b, method="manhattan"):
+  if method == "manhattan":
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+  elif method == "euclidean":
+    return ((a[0] - b[0])**2 + (a[1] - b[1])**2)**0.5
+  else:
+    raise ValueError("Unsupported heuristic method.")
 
 def astar(start, goal, grid):
   open_list = []
   closed_set = set()
-  start_node = Node(start, 0, heuristic(start, goal))
+  start_node = Node(start, 0, heuristic(start, goal, method="manhattan"))
   heapq.heappush(open_list, start_node)
 
   came_from = {}
@@ -47,10 +52,11 @@ def astar(start, goal, grid):
         if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
           came_from[neighbor] = current_node
           g_score[neighbor] = tentative_g_score
-          h = heuristic(neighbor, goal)
+          h = heuristic(neighbor, goal, method="manhattan")
           neighbor_node = Node(neighbor, tentative_g_score, h)
 
           if neighbor_node not in open_list:
             heapq.heappush(open_list, neighbor_node)
 
+  print("No path found.")
   return []  # Return empty if no path found
